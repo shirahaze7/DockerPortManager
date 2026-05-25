@@ -2,6 +2,7 @@
 
 ホスト上の `docker-compose.yml` を再帰的に検索し、
 サービス名・ポート番号・使用状況・URLを一覧表示するWebダッシュボードです。
+<img width="1890" height="990" alt="image" src="https://github.com/user-attachments/assets/cc07851d-745e-4d42-afca-339da2d2204a" />
 
 ## 起動
 
