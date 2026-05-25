@@ -33,7 +33,7 @@ docker-dashboard/
 
 ## 仕組み
 
-- **backend**: ホストの `/` を読み取り専用でマウントし、`docker-compose.yml` / `docker-compose.yaml` を再帰検索
+- **backend**: ホストの `/home/[user]/docker` を読み取り専用でマウントし、`docker-compose.yml` / `docker-compose.yaml` を再帰検索
   - サービス名・ホストポート・コンテナポートを抽出
   - `socket.connect` でポートの使用中チェック（127.0.0.1）
 - **frontend**: nginx がポート1010で静的ファイルを配信、`/api/` はbackendへプロキシ
