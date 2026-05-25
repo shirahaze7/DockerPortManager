@@ -1,4 +1,4 @@
-# Docker Port Dashboard
+# Docker Port Manager
 
 ホスト上の `docker-compose.yml` を再帰的に検索し、
 サービス名・ポート番号・使用状況・URLを一覧表示するWebダッシュボードです。
