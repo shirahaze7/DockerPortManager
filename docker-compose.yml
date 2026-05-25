@@ -1,0 +1,28 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      # ホストの / をコンテナの /host にマウントして検索
+      SEARCH_ROOT: /host
+    volumes:
+      - /home/shirahaze/docker:/host:ro          # ホストのルートを読み取り専用でマウント
+    restart: unless-stopped
+    networks:
+      - dashboard-net
+
+  frontend:
+    image: nginx:alpine
+    ports:
+      - "1010:1010"
+    volumes:
+      - ./frontend/index.html:/usr/share/nginx/html/index.html:ro
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - dashboard-net
+
+networks:
+  dashboard-net:
+    driver: bridge
