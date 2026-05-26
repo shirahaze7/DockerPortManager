@@ -233,16 +233,18 @@
 
             <button
               class="open-btn ${s.in_use ? 'disabled' : ''}"
-              onclick="confirmStart('${encodeURIComponent(s.compose_file)}')"
+              data-compose-file="${esc(s.compose_file)}"
+              onclick="confirmStart(this.dataset.composeFile)"
             >
-              START
+              開始
             </button>
 
             <button
               class="open-btn ${s.in_use ? '' : 'disabled'}"
-              onclick="confirmStop('${encodeURIComponent(s.compose_file)}')"
+              data-compose-file="${esc(s.compose_file)}"
+              onclick="confirmStop(this.dataset.composeFile)"
             >
-              STOP
+              終了
             </button>
 
           </div>
@@ -323,13 +325,20 @@
         body: JSON.stringify({ compose_file })
       });
 
-      const data = await res.json().catch(() => ({}));
+      let data = null;
+      let text = null;
+      try {
+        text = await res.text();
+        data = JSON.parse(text);
+      } catch (err) {
+        data = null;
+      }
 
-      if (res.ok && data.success) {
-        alert((action === 'up' ? 'Started' : 'Stopped') + ' successfully');
+      if (res.ok && data && data.success) {
+        alert(action === 'up' ? '開始しました' : '終了しました');
       } else {
-        const msg = data.error || data.stderr || JSON.stringify(data);
-        alert('Error: ' + msg);
+        const msg = (data && (data.error || data.stderr)) || text || `${res.status} ${res.statusText}`;
+        alert('エラー: ' + msg);
       }
     } catch (e) {
       alert('Request error: ' + e.message);
@@ -338,15 +347,13 @@
     }
   }
 
-  function confirmStart(encoded) {
-    const compose_file = decodeURIComponent(encoded);
-    if (!confirm('Confirm: start this compose service?')) return;
+  function confirmStart(compose_file) {
+    if (!confirm('このサービスを開始しますか？')) return;
     sendComposeAction('up', compose_file);
   }
 
-  function confirmStop(encoded) {
-    const compose_file = decodeURIComponent(encoded);
-    if (!confirm('Confirm: stop this compose service?')) return;
+  function confirmStop(compose_file) {
+    if (!confirm('このサービスを終了しますか？')) return;
     sendComposeAction('down', compose_file);
   }
 

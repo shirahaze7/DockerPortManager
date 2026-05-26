@@ -150,14 +150,14 @@ def get_services():
 
 @app.route("/api/compose/up", methods=["POST"])
 def compose_up():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     compose_file = data.get("compose_file")
     if not compose_file:
         return jsonify({"success": False, "error": "compose_file required"}), 400
 
     rel = compose_file.lstrip("/\\")
-    full_path = os.path.normpath(os.path.join(SEARCH_ROOT, rel))
-    search_root_norm = os.path.normpath(SEARCH_ROOT)
+    search_root_norm = os.path.normcase(os.path.abspath(SEARCH_ROOT))
+    full_path = os.path.normcase(os.path.abspath(os.path.join(SEARCH_ROOT, rel)))
     if not full_path.startswith(search_root_norm):
         return jsonify({"success": False, "error": "invalid compose_file path"}), 400
 
@@ -176,14 +176,14 @@ def compose_up():
 
 @app.route("/api/compose/down", methods=["POST"])
 def compose_down():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     compose_file = data.get("compose_file")
     if not compose_file:
         return jsonify({"success": False, "error": "compose_file required"}), 400
 
     rel = compose_file.lstrip("/\\")
-    full_path = os.path.normpath(os.path.join(SEARCH_ROOT, rel))
-    search_root_norm = os.path.normpath(SEARCH_ROOT)
+    search_root_norm = os.path.normcase(os.path.abspath(SEARCH_ROOT))
+    full_path = os.path.normcase(os.path.abspath(os.path.join(SEARCH_ROOT, rel)))
     if not full_path.startswith(search_root_norm):
         return jsonify({"success": False, "error": "invalid compose_file path"}), 400
 
@@ -198,6 +198,13 @@ def compose_down():
         return jsonify({"success": ok, "returncode": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    response = {"success": False, "error": str(e)}
+    status_code = getattr(e, 'code', 500)
+    return jsonify(response), status_code
 
 
 @app.route("/api/health")
