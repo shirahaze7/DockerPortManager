@@ -1,7 +1,7 @@
 ---
 name: Bug Report
-about: バグ報告
-title: ''
+about: バグを報告する
+title: "[BUG] "
 labels: 'bug'
 assignees: ''
 
@@ -25,10 +25,17 @@ assignees: ''
 ## スクリーンショット
 <!-- 必要に応じてスクリーンショットを添付してください -->
 
-## 環境
-- OS: 
-- Docker Version: 
-- Docker Compose Version: 
+## 環境情報
+- **OS**: 
+- **Docker バージョン**: 
+- **Docker Compose バージョン**: 
+- **ブラウザ**: 
+
+## ログ・エラーメッセージ
+<!-- 関連するログやエラーメッセージがあれば記入してください -->
+```
+
+```
 
 ## 追加情報
 <!-- その他参考になる情報があれば記入してください -->
