@@ -43,7 +43,8 @@ docker-dashboard/
 │   └── Dockerfile
 └── frontend/
     ├── index.html          # ダッシュボードUI
-    └── nginx.conf          # nginx設定（ポート1010）
+    ├── nginx.conf          # nginx設定（ポート1010）
+    └── styles.css          # UIのCSS
 ```
 
 ## 仕組み
