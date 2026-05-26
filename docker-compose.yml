@@ -6,9 +6,10 @@ services:
       SEARCH_ROOT: /host
       PYTHONUNBUFFERED: 1
     volumes:
-      - /home/shirahaze/docker:/host:ro          # ホストのルートを読み取り専用でマウント
+      - /home/shirahaze/docker:/host         # 読み書き可能に変更（docker compose実行に必要）
       - /var/run/docker.sock:/var/run/docker.sock  # Docker socket をマウント
-      - ./backend:/app                            # ホストの backend をコンテナの /app にマウント（開発用）
+      - ./backend:/app                        # ホストの backend をコンテナの /app にマウント（開発用）
+    user: "root"                              # root ユーザーで実行して Docker コマンド権限を確保
     restart: unless-stopped
     networks:
       - dashboard-net
