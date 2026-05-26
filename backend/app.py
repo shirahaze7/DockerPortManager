@@ -1,6 +1,7 @@
 import glob
 import os
 import socket
+import subprocess
 import yaml
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -145,6 +146,58 @@ def get_services():
         "compose_files_found": len(compose_files),
         "errors": errors,
     })
+
+
+@app.route("/api/compose/up", methods=["POST"])
+def compose_up():
+    data = request.get_json() or {}
+    compose_file = data.get("compose_file")
+    if not compose_file:
+        return jsonify({"success": False, "error": "compose_file required"}), 400
+
+    rel = compose_file.lstrip("/\\")
+    full_path = os.path.normpath(os.path.join(SEARCH_ROOT, rel))
+    search_root_norm = os.path.normpath(SEARCH_ROOT)
+    if not full_path.startswith(search_root_norm):
+        return jsonify({"success": False, "error": "invalid compose_file path"}), 400
+
+    if not os.path.exists(full_path):
+        return jsonify({"success": False, "error": "file not found", "path": full_path}), 404
+
+    dirpath = os.path.dirname(full_path)
+
+    try:
+        proc = subprocess.run(["docker", "compose", "up", "-d"], cwd=dirpath, capture_output=True, text=True, timeout=120)
+        ok = proc.returncode == 0
+        return jsonify({"success": ok, "returncode": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/compose/down", methods=["POST"])
+def compose_down():
+    data = request.get_json() or {}
+    compose_file = data.get("compose_file")
+    if not compose_file:
+        return jsonify({"success": False, "error": "compose_file required"}), 400
+
+    rel = compose_file.lstrip("/\\")
+    full_path = os.path.normpath(os.path.join(SEARCH_ROOT, rel))
+    search_root_norm = os.path.normpath(SEARCH_ROOT)
+    if not full_path.startswith(search_root_norm):
+        return jsonify({"success": False, "error": "invalid compose_file path"}), 400
+
+    if not os.path.exists(full_path):
+        return jsonify({"success": False, "error": "file not found", "path": full_path}), 404
+
+    dirpath = os.path.dirname(full_path)
+
+    try:
+        proc = subprocess.run(["docker", "compose", "down"], cwd=dirpath, capture_output=True, text=True, timeout=120)
+        ok = proc.returncode == 0
+        return jsonify({"success": ok, "returncode": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/api/health")

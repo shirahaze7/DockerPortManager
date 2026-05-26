@@ -211,24 +211,41 @@
 
           </div>
 
-          ${
-            s.url
-              ? `
-                <a
-                  class="open-btn ${s.in_use ? '' : 'disabled'}"
-                  href="${s.url}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  OPEN SERVICE
-                </a>
-              `
-              : `
-                <div class="open-btn disabled">
-                  NO URL
-                </div>
-              `
-          }
+          <div class="action-row">
+            ${
+              s.url
+                ? `
+                  <a
+                    class="open-btn ${s.in_use ? '' : 'disabled'}"
+                    href="${s.url}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    OPEN SERVICE
+                  </a>
+                `
+                : `
+                  <div class="open-btn disabled">
+                    NO URL
+                  </div>
+                `
+            }
+
+            <button
+              class="open-btn ${s.in_use ? 'disabled' : ''}"
+              onclick="confirmStart('${encodeURIComponent(s.compose_file)}')"
+            >
+              START
+            </button>
+
+            <button
+              class="open-btn ${s.in_use ? '' : 'disabled'}"
+              onclick="confirmStop('${encodeURIComponent(s.compose_file)}')"
+            >
+              STOP
+            </button>
+
+          </div>
 
         </div>
       `;
@@ -296,6 +313,41 @@
         "'": '&#39;'
       }[c])
     );
+  }
+
+  async function sendComposeAction(action, compose_file) {
+    try {
+      const res = await fetch(`/api/compose/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ compose_file })
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.success) {
+        alert((action === 'up' ? 'Started' : 'Stopped') + ' successfully');
+      } else {
+        const msg = data.error || data.stderr || JSON.stringify(data);
+        alert('Error: ' + msg);
+      }
+    } catch (e) {
+      alert('Request error: ' + e.message);
+    } finally {
+      loadData();
+    }
+  }
+
+  function confirmStart(encoded) {
+    const compose_file = decodeURIComponent(encoded);
+    if (!confirm('Confirm: start this compose service?')) return;
+    sendComposeAction('up', compose_file);
+  }
+
+  function confirmStop(encoded) {
+    const compose_file = decodeURIComponent(encoded);
+    if (!confirm('Confirm: stop this compose service?')) return;
+    sendComposeAction('down', compose_file);
   }
 
   loadData();
