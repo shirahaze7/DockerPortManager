@@ -3,6 +3,7 @@ import os
 import socket
 import subprocess
 import yaml
+import docker
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
@@ -150,53 +151,85 @@ def get_services():
 
 @app.route("/api/compose/up", methods=["POST"])
 def compose_up():
+    print(f"[DEBUG] POST /api/compose/up received")
     data = request.get_json(silent=True) or {}
+    print(f"[DEBUG] Request data: {data}")
     compose_file = data.get("compose_file")
     if not compose_file:
+        print(f"[DEBUG] compose_file missing")
         return jsonify({"success": False, "error": "compose_file required"}), 400
 
     rel = compose_file.lstrip("/\\")
     search_root_norm = os.path.normcase(os.path.abspath(SEARCH_ROOT))
     full_path = os.path.normcase(os.path.abspath(os.path.join(SEARCH_ROOT, rel)))
+    print(f"[DEBUG] search_root_norm: {search_root_norm}, full_path: {full_path}")
     if not full_path.startswith(search_root_norm):
+        print(f"[DEBUG] Path validation failed")
         return jsonify({"success": False, "error": "invalid compose_file path"}), 400
 
     if not os.path.exists(full_path):
+        print(f"[DEBUG] File not found: {full_path}")
         return jsonify({"success": False, "error": "file not found", "path": full_path}), 404
 
     dirpath = os.path.dirname(full_path)
+    print(f"[DEBUG] Running docker compose up in: {dirpath}")
 
     try:
+        # Try "docker compose" first, fallback to "docker-compose"
+        print(f"[DEBUG] Attempting: docker compose up -d")
         proc = subprocess.run(["docker", "compose", "up", "-d"], cwd=dirpath, capture_output=True, text=True, timeout=120)
+        print(f"[DEBUG] First attempt returncode: {proc.returncode}, stderr: {proc.stderr[:200]}")
+        
+        if proc.returncode != 0 and "not a docker command" in proc.stderr.lower():
+            print(f"[DEBUG] Retrying with: docker-compose up -d")
+            proc = subprocess.run(["docker-compose", "up", "-d"], cwd=dirpath, capture_output=True, text=True, timeout=120)
+            print(f"[DEBUG] Retry returncode: {proc.returncode}")
+        
         ok = proc.returncode == 0
+        print(f"[DEBUG] Final result - returncode: {proc.returncode}, stdout: {proc.stdout}, stderr: {proc.stderr}")
         return jsonify({"success": ok, "returncode": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr})
     except Exception as e:
+        print(f"[DEBUG] Exception: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/api/compose/down", methods=["POST"])
 def compose_down():
+    print(f"[DEBUG] POST /api/compose/down received")
     data = request.get_json(silent=True) or {}
+    print(f"[DEBUG] Request data: {data}")
     compose_file = data.get("compose_file")
     if not compose_file:
+        print(f"[DEBUG] compose_file missing")
         return jsonify({"success": False, "error": "compose_file required"}), 400
 
     rel = compose_file.lstrip("/\\")
     search_root_norm = os.path.normcase(os.path.abspath(SEARCH_ROOT))
     full_path = os.path.normcase(os.path.abspath(os.path.join(SEARCH_ROOT, rel)))
+    print(f"[DEBUG] search_root_norm: {search_root_norm}, full_path: {full_path}")
     if not full_path.startswith(search_root_norm):
+        print(f"[DEBUG] Path validation failed")
         return jsonify({"success": False, "error": "invalid compose_file path"}), 400
 
     if not os.path.exists(full_path):
+        print(f"[DEBUG] File not found: {full_path}")
         return jsonify({"success": False, "error": "file not found", "path": full_path}), 404
 
     dirpath = os.path.dirname(full_path)
+    print(f"[DEBUG] Running docker compose down in: {dirpath}")
 
     try:
+        # Try "docker compose" first, fallback to "docker-compose"
         proc = subprocess.run(["docker", "compose", "down"], cwd=dirpath, capture_output=True, text=True, timeout=120)
+        if proc.returncode != 0 and "not a docker command" in proc.stderr.lower():
+            print(f"[DEBUG] Retrying with docker-compose")
+            proc = subprocess.run(["docker-compose", "down"], cwd=dirpath, capture_output=True, text=True, timeout=120)
+        
         ok = proc.returncode == 0
+        print(f"[DEBUG] Process result - returncode: {proc.returncode}, stdout: {proc.stdout}, stderr: {proc.stderr}")
         return jsonify({"success": ok, "returncode": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr})
     except Exception as e:
+        print(f"[DEBUG] Exception: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -214,4 +247,4 @@ def health():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=True)

@@ -232,7 +232,9 @@
             }
 
             <button
+              type="button"
               class="open-btn ${s.in_use ? 'disabled' : ''}"
+              ${s.in_use ? 'disabled' : ''}
               data-compose-file="${esc(s.compose_file)}"
               onclick="confirmStart(this.dataset.composeFile)"
             >
@@ -240,7 +242,9 @@
             </button>
 
             <button
+              type="button"
               class="open-btn ${s.in_use ? '' : 'disabled'}"
+              ${s.in_use ? '' : 'disabled'}
               data-compose-file="${esc(s.compose_file)}"
               onclick="confirmStop(this.dataset.composeFile)"
             >

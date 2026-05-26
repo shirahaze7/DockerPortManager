@@ -4,8 +4,11 @@ services:
     environment:
       # ホストの / をコンテナの /host にマウントして検索
       SEARCH_ROOT: /host
+      PYTHONUNBUFFERED: 1
     volumes:
       - /home/shirahaze/docker:/host:ro          # ホストのルートを読み取り専用でマウント
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker socket をマウント
+      - ./backend:/app                            # ホストの backend をコンテナの /app にマウント（開発用）
     restart: unless-stopped
     networks:
       - dashboard-net
