@@ -175,18 +175,11 @@ def compose_up():
     print(f"[DEBUG] Running docker compose up in: {dirpath}")
 
     try:
-        # Try "docker compose" first, fallback to "docker-compose"
-        print(f"[DEBUG] Attempting: docker compose up -d")
-        proc = subprocess.run(["docker", "compose", "up", "-d"], cwd=dirpath, capture_output=True, text=True, timeout=120)
-        print(f"[DEBUG] First attempt returncode: {proc.returncode}, stderr: {proc.stderr[:200]}")
-        
-        if proc.returncode != 0 and "not a docker command" in proc.stderr.lower():
-            print(f"[DEBUG] Retrying with: docker-compose up -d")
-            proc = subprocess.run(["docker-compose", "up", "-d"], cwd=dirpath, capture_output=True, text=True, timeout=120)
-            print(f"[DEBUG] Retry returncode: {proc.returncode}")
+        # Use docker-compose (standalone version is more reliable)
+        proc = subprocess.run(["docker-compose", "up", "-d"], cwd=dirpath, capture_output=True, text=True, timeout=120)
         
         ok = proc.returncode == 0
-        print(f"[DEBUG] Final result - returncode: {proc.returncode}, stdout: {proc.stdout}, stderr: {proc.stderr}")
+        print(f"[DEBUG] Process result - returncode: {proc.returncode}, stdout: {proc.stdout}, stderr: {proc.stderr}")
         return jsonify({"success": ok, "returncode": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr})
     except Exception as e:
         print(f"[DEBUG] Exception: {str(e)}")
@@ -219,11 +212,8 @@ def compose_down():
     print(f"[DEBUG] Running docker compose down in: {dirpath}")
 
     try:
-        # Try "docker compose" first, fallback to "docker-compose"
-        proc = subprocess.run(["docker", "compose", "down"], cwd=dirpath, capture_output=True, text=True, timeout=120)
-        if proc.returncode != 0 and "not a docker command" in proc.stderr.lower():
-            print(f"[DEBUG] Retrying with docker-compose")
-            proc = subprocess.run(["docker-compose", "down"], cwd=dirpath, capture_output=True, text=True, timeout=120)
+        # Use docker-compose (standalone version is more reliable)
+        proc = subprocess.run(["docker-compose", "down"], cwd=dirpath, capture_output=True, text=True, timeout=120)
         
         ok = proc.returncode == 0
         print(f"[DEBUG] Process result - returncode: {proc.returncode}, stdout: {proc.stdout}, stderr: {proc.stderr}")
