@@ -3,7 +3,8 @@
 ホスト上の複数の `docker-compose.yml` を自動検出し、各サービスの情報（名前・ポート・状態）を
 リアルタイム表示するWebダッシュボード。ダッシュボードから直接サービスの開始・停止を制御できます。
 
-<img width="1890" height="990" alt="image" src="https://github.com/user-attachments/assets/cc07851d-745e-4d42-afca-339da2d2204a" />
+<img width="1901" height="956" alt="image" src="https://github.com/user-attachments/assets/82aa6151-17a7-499f-866e-74c066d84c80" />
+
 
 ## 概要
 
