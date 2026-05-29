@@ -1,7 +1,7 @@
 # Docker Port Manager
 
-ホスト上の `docker-compose.yml` を再帰的に検索し、
-サービス名・ポート番号・使用状況・URLを一覧表示するWebダッシュボードです。
+ホスト上の複数の `docker-compose.yml` を自動検出し、各サービスの情報（名前・ポート・状態）を
+リアルタイム表示するWebダッシュボード。ダッシュボードから直接サービスの開始・停止を制御できます。
 
 <img width="1890" height="990" alt="image" src="https://github.com/user-attachments/assets/cc07851d-745e-4d42-afca-339da2d2204a" />
 
@@ -14,6 +14,7 @@ Docker Port Manager は、複数のDockerプロジェクトを管理している
 
 - **再帰的な検索**: ホスト上のすべての `docker-compose.yml/yaml` ファイルを自動検出
 - **リアルタイム監視**: ポートの使用状況をリアルタイムで確認
+- **サービス制御**: ダッシュボードから直接サービスの開始・停止を実行
 - **ワンクリックアクセス**: サービスのURLをダッシュボードから直接開く
 - **レスポンシブUI**: ブラウザで簡単にアクセス可能
 - **自動更新**: 30秒ごとに最新の状態を表示
@@ -60,7 +61,10 @@ docker-dashboard/
 - **ポート使用状況確認**: `socket.connect` を使用して `127.0.0.1` の指定ポートへの接続テストを実施
   - 接続成功 → ポート使用中（緑色表示）
   - 接続失敗 → ポート未使用（灰色表示）
-- REST API (`/api/services`) でフロントエンドに最新情報を提供
+- REST API でフロントエンドに最新情報を提供：
+  - `GET /api/services`: サービス一覧取得
+  - `POST /api/compose/up`: 指定サービスの起動（`docker-compose up -d`）
+  - `POST /api/compose/down`: 指定サービスの停止（`docker-compose down`）
 
 ### Frontend（Nginx + JavaScript）
 
@@ -70,6 +74,7 @@ docker-dashboard/
 - **UI機能**:
   - サービスの色分け表示（使用中/未使用）
   - ポート番号をクリックしてブラウザで直接アクセス可能
+  - 「開始」「終了」ボタンでサービスをワンクリック制御
   - レスポンシブデザイン対応
 
 ## インストール・使用方法
