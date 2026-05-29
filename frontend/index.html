@@ -211,24 +211,47 @@
 
           </div>
 
-          ${
-            s.url
-              ? `
-                <a
-                  class="open-btn ${s.in_use ? '' : 'disabled'}"
-                  href="${s.url}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  OPEN SERVICE
-                </a>
-              `
-              : `
-                <div class="open-btn disabled">
-                  NO URL
-                </div>
-              `
-          }
+          <div class="action-row">
+            ${
+              s.url
+                ? `
+                  <a
+                    class="open-btn ${s.in_use ? '' : 'disabled'}"
+                    href="${s.url}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    OPEN SERVICE
+                  </a>
+                `
+                : `
+                  <div class="open-btn disabled">
+                    NO URL
+                  </div>
+                `
+            }
+
+            <button
+              type="button"
+              class="open-btn ${s.in_use ? 'disabled' : ''}"
+              ${s.in_use ? 'disabled' : ''}
+              data-compose-file="${esc(s.compose_file)}"
+              onclick="confirmStart(this.dataset.composeFile)"
+            >
+              開始
+            </button>
+
+            <button
+              type="button"
+              class="open-btn ${s.in_use ? '' : 'disabled'}"
+              ${s.in_use ? '' : 'disabled'}
+              data-compose-file="${esc(s.compose_file)}"
+              onclick="confirmStop(this.dataset.composeFile)"
+            >
+              終了
+            </button>
+
+          </div>
 
         </div>
       `;
@@ -296,6 +319,46 @@
         "'": '&#39;'
       }[c])
     );
+  }
+
+  async function sendComposeAction(action, compose_file) {
+    try {
+      const res = await fetch(`/api/compose/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ compose_file })
+      });
+
+      let data = null;
+      let text = null;
+      try {
+        text = await res.text();
+        data = JSON.parse(text);
+      } catch (err) {
+        data = null;
+      }
+
+      if (res.ok && data && data.success) {
+        alert(action === 'up' ? '開始しました' : '終了しました');
+      } else {
+        const msg = (data && (data.error || data.stderr)) || text || `${res.status} ${res.statusText}`;
+        alert('エラー: ' + msg);
+      }
+    } catch (e) {
+      alert('Request error: ' + e.message);
+    } finally {
+      loadData();
+    }
+  }
+
+  function confirmStart(compose_file) {
+    if (!confirm('このサービスを開始しますか？')) return;
+    sendComposeAction('up', compose_file);
+  }
+
+  function confirmStop(compose_file) {
+    if (!confirm('このサービスを終了しますか？')) return;
+    sendComposeAction('down', compose_file);
   }
 
   loadData();
