@@ -23,12 +23,6 @@ CORS(app)  # 外部フロントエンドからのAPIアクセスを許可
 # 探索対象となるホスト側のルートディレクトリ（Dockerコンテナ内からマウントされたパス）
 SEARCH_ROOT = os.environ.get("SEARCH_ROOT", "/host")
 
-# ネットワークアクセス元に応じた接続先IP候補
-# - ローカルネットワークからのアクセス
-IP_LOCAL = "192.168.0.206"
-# - VPN経由でのアクセス
-IP_VPN = "100.107.246.101"
-
 
 def find_compose_files():
     """SEARCH_ROOT 配下から docker-compose.yml / .yaml ファイルを再帰的に検索する
@@ -161,10 +155,10 @@ def check_port_in_use(ip, port):
 
 @app.route("/api/services")
 def get_services():
-    """全 Compose ファイルを走査し、アクセス元に応じたホストIPでサービス一覧を返す
+    """全 Compose ファイルを走査し、アクセス元URLから取得したIPアドレスでサービス一覧を返す
     
-    アクセス元のホストヘッダーを確認して、VPN経由か直接接続かを判定し、
-    適切なIPアドレスを使ってポートの使用状況を確認する。
+    リクエストのホストヘッダーから自動的にIPアドレスを抽出し、
+    そのIPアドレスを使ってポートの使用状況を確認する。
     
     Returns:
         JSON: {
@@ -176,12 +170,8 @@ def get_services():
     # リクエスト元のホストを取得
     host_header = request.headers.get("Host", "")
 
-    # VPN経由か直接接続かを判定して、アクセス先IPを決定
-    # これにより UI上のURLが正しくユーザーから到達可能なIPになる
-    if IP_VPN in host_header:
-        target_ip = IP_VPN
-    else:
-        target_ip = IP_LOCAL
+    # ホストヘッダーからIPアドレスを抽出（ポート番号を除去）
+    target_ip = host_header.split(":")[0] if host_header else "localhost"
 
     # Compose ファイルを検索
     compose_files = find_compose_files()
