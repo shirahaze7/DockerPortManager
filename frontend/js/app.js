@@ -126,7 +126,7 @@ function render(data) {
 
           <button
             type="button"
-            class="open-btn ${s.in_use ? '' : 'disabled'}"
+            class="open-btn stop-btn ${s.in_use ? '' : 'disabled'}"
             ${s.in_use ? '' : 'disabled'}
             data-compose-file="${esc(s.compose_file)}"
             onclick="confirmStop(this.dataset.composeFile)"
