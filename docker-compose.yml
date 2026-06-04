@@ -19,8 +19,7 @@ services:
     ports:
       - "1010:1010"
     volumes:
-      - ./frontend/index.html:/usr/share/nginx/html/index.html:ro
-      - ./frontend/styles.css:/usr/share/nginx/html/styles.css:ro
+      - ./frontend:/usr/share/nginx/html:ro
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - backend
